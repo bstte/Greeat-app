@@ -1,6 +1,44 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.VIBRATE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+  <uses-permission android:name="android.permission.CAMERA" />
+   <queries>
+    <!-- For DOC files -->
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:mimeType="application/msword" />
+    </intent>
+    <!-- For DOCX files -->
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+    </intent>
+    <!-- For PDF files -->
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:mimeType="application/pdf" />
+    </intent>
+    <!-- For Excel files -->
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:mimeType="application/vnd.ms-excel" />
+    </intent>
+    <!-- For Images (JPEG and PNG) -->
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:mimeType="image/jpeg" />
+    </intent>
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:mimeType="image/png" />
+    </intent>
+</queries>
 
     <application
       android:name=".MainApplication"

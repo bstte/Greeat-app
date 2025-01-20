@@ -145,7 +145,7 @@ const AddInvoice = (props) => {
                 }
             }
 
-            console.log(`Resizing to: ${targetWidth}x${targetHeight}`);
+    
 
             // Resize the image
             resizedImage = await ImageResizer.createResizedImage(

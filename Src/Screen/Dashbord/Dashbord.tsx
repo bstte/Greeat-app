@@ -341,7 +341,7 @@ const Dashboard = (props) => {
 
       </View>
       <View style={{ justifyContent: "center", alignItems: "center" }}>
-        <Text style={{ color: "#fff", fontSize: 18 }}>Greeat V=3.2</Text>
+        <Text style={{ color: "#fff", fontSize: 18 }}>Greeat V=3.3</Text>
       </View>
     </>
 

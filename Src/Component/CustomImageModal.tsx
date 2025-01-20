@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform,PermissionsAndroid,PermissionStatus } from 'react-native'
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform, PermissionsAndroid, PermissionStatus } from 'react-native'
 import React from 'react'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from "react-native-responsive-dimensions";
@@ -7,41 +7,74 @@ import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import ImagePicker from 'react-native-image-crop-picker';
 import { TouchableWithoutFeedback } from 'react-native';
 import { Prime_Color } from '../Colour/Colour';
-import { translate } from '../i18n/Language/useTranslation'
 
 interface ImageModal {
     togglevisible: any;
     handelImage: any;
     onclose: any;
-    multipleImage:boolean
+    multipleImage: boolean
+    Galleryvalidation: boolean
 }
 
 
-const CustomImageModal: React.FC<ImageModal> = ({ togglevisible,onclose, handelImage,multipleImage }) => {
+const CustomImageModal: React.FC<ImageModal> = ({ togglevisible, onclose, handelImage, multipleImage, Galleryvalidation }) => {
 
     const toggleModal = () => {
         onclose(false);
-      };
+    };
 
+    // here img picker code
     const Camera = async () => {
         try {
             const cameraPermission = Platform.OS === 'android' ? PERMISSIONS.ANDROID.CAMERA : PERMISSIONS.IOS.CAMERA;
 
             const permissionResult = await request(cameraPermission);
 
+            if (permissionResult === RESULTS.GRANTED) {
                 console.log('Camera permission granted');
 
                 const response = await ImagePicker.openCamera({
                     width: 250,
                     height: 250,
-                    cropping: false,
+                    cropping: true,
                 });
 
-              
+                // console.log('Image picker response:', response);
+                // const compressedImage = await compressAndResizeImage(response.path);
                 handelImage(response)
 
+
+            } else {
+                console.log('Camera permission denied');
+            }
         } catch (error) {
             console.error('Camera Error:', error);
+        }
+    };
+
+
+    const Gallery = async () => {
+        try {
+            const galleryPermission = Platform.OS === 'android' ? PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE : PERMISSIONS.IOS.PHOTO_LIBRARY;
+
+            const permissionResult = await request(galleryPermission);
+
+            // if (permissionResult === RESULTS.GRANTED) {
+            console.log('Gallery permission granted');
+
+            const response = await ImagePicker.openPicker({
+                multiple: multipleImage,
+                width: 250,
+                height: 250,
+                cropping: true,
+            });
+
+            handelImage(response);
+            // } else {
+            //   console.log('Gallery permission denied');
+            // }
+        } catch (error) {
+            console.error('Gallery Permission Error:', error);
         }
     };
 
@@ -55,27 +88,36 @@ const CustomImageModal: React.FC<ImageModal> = ({ togglevisible,onclose, handelI
 
             >
                 <TouchableWithoutFeedback onPress={toggleModal}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.modal}>
-                        <View style={{alignItems:"center"}}>
-                        <View style={styles.separator} />
-                        </View>
-                 
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modal}>
+                            <View style={{ alignItems: "center" }}>
+                                <View style={styles.separator} />
+                            </View>
 
-                        <TouchableOpacity onPress={Camera} style={styles.cameraContainer}>
-                            <Icon color={Prime_Color} name='camera' size={33} style={{ width: 40 }} />
-                            <Text style={styles.text}>{translate('AddInvoice.Take_Photo')}</Text>
-                        </TouchableOpacity>
+
+                            <TouchableOpacity onPress={Camera} style={styles.cameraContainer}>
+                                <Icon color={Prime_Color} name='camera' size={33} style={{ width: 40 }} />
+                                <Text style={styles.text}>Take Photo</Text>
+                            </TouchableOpacity>
+
+                            {
+                                Galleryvalidation && (
+                                    <TouchableOpacity onPress={Gallery} style={styles.GalleryContainer}>
+                                        <Icon color={Prime_Color} name='image' size={33} style={{ width: 40 }} />
+                                        <Text style={styles.text}>Select From Gallery</Text>
+                                    </TouchableOpacity>
+                                )
+                            }
+
+
+                        </View>
 
                     </View>
-                   
-                </View>
                 </TouchableWithoutFeedback>
             </Modal>
         </View>
     )
 }
-
 export default CustomImageModal
 
 const styles = StyleSheet.create({
@@ -101,19 +143,19 @@ const styles = StyleSheet.create({
         width: '15%',
         height: responsiveHeight(0.4),
         justifyContent: 'center',
-        alignSelf:"center",
+        alignSelf: "center",
         backgroundColor: '#ccc',
-        display:"flex",
+        display: "flex",
         marginTop: 10,
         marginBottom: 20,
     },
-    cameraContainer:{
+    cameraContainer: {
         flexDirection: "row", alignItems: "center", marginBottom: 14
     },
-    GalleryContainer:{
+    GalleryContainer: {
         flexDirection: "row", alignItems: "center"
     },
-    text:{
+    text: {
         fontSize: 18, color: "#000"
     },
     closeButton: {
@@ -121,7 +163,7 @@ const styles = StyleSheet.create({
         padding: responsiveHeight(1.3),
         borderWidth: 1,
         borderRadius: responsiveHeight(0.5),
-       alignItems:"center",
+        alignItems: "center",
         borderColor: '#ccc',
-      },
+    },
 })

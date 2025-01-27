@@ -51,7 +51,7 @@ const TimeManagement = (props) => {
         if (token) {
             try {
                 setIsLoading(true);
-                // console.log(weekStartDate.format('YYYY-MM-DD'))
+                console.log(weekStartDate.format('YYYY-MM-DD'))
                 const response = await api.schedule(token, weekStartDate.format('YYYY-MM-DD'));
                 setIsLoading(false);
                 setScheduleData(response.data.data);
@@ -79,9 +79,6 @@ const TimeManagement = (props) => {
     };
 
     const handleSaveNote_without_schedule = async () => {
-        console.log("selectedOption", selectedOption)
-        console.log("selectedImage", selectedImage)
-        // setModalVisible_without_schedule(false);
         if (!note) {
 
             ErrorMessage({
@@ -113,10 +110,9 @@ const TimeManagement = (props) => {
 
         const token = await fetchToken();
         if (token) {
-            console.log("formdata",formData)
             try {
                 const response = await api.Leave_without_schedule(token, formData)
-                console.log(response.data)
+                setNote(''),setSelectedOption(null),setSelectedImage(null)
                 updateWeekRange(currentWeekStart);
                 setModalVisible_without_schedule(false);
                 Alert.alert('Success', 'Richiesta aggiunta con successo');
@@ -132,12 +128,6 @@ const TimeManagement = (props) => {
 
     }
     const handleSaveNote = async () => {
-        // console.log("shift_id:", shift_id);
-        // console.log("Note:", note);
-        console.log("selectedOption", selectedOption)
-        console.log("selectedImage", selectedImage)
-        // setModalVisible(false);
-
         if (!note) {
 
             ErrorMessage({
@@ -154,22 +144,25 @@ const TimeManagement = (props) => {
             return;
         }
 
-        // const formData = new FormData();
-        // formData.append('shift_id', shift_id);
-        // formData.append('note', note);
-        // if (selectedImage) {
-        //     formData.append('file', {
-        //         uri: selectedImage.uri,
-        //         name: selectedImage.uri.split('/').pop(),
-        //         type: selectedImage.type
-        //     });
-        // }
+        const formData = new FormData();
+        formData.append('shift_id', shift_id);
+        formData.append('note', note);
+        formData.append('type', selectedOption==='Leave'?1:2);
+        if (selectedImage) {
+            formData.append('file', {
+                uri: selectedImage.uri,
+                name: selectedImage.uri.split('/').pop(),
+                type: selectedImage.type
+            });
+        }
+        formData.append('date', date);
 
         const token = await fetchToken();
         if (token) {
             try {
-                const response = await api.Leave(token, { shift_id: shift_id, note: note })
-                // console.log(response.data)
+                const response = await api.Leave(token, formData)
+                setNote(''),setSelectedOption(null),setSelectedImage(null)
+                setModalVisible(false);
                 updateWeekRange(currentWeekStart);
                 Alert.alert('Success', 'Richiesta aggiunta con successo');
 
@@ -243,49 +236,71 @@ const TimeManagement = (props) => {
     }
 
     const renderSchedule = ({ item }) => {
-        const days = [translate('TimeManagement.Monday'), translate('TimeManagement.Tuesday'), translate('TimeManagement.Wednesday'), translate('TimeManagement.Thursday'), translate('TimeManagement.Friday'), translate('TimeManagement.Saturday'), translate('TimeManagement.Sunday')];
-
+        const days = [
+            translate('TimeManagement.Monday'),
+            translate('TimeManagement.Tuesday'),
+            translate('TimeManagement.Wednesday'),
+            translate('TimeManagement.Thursday'),
+            translate('TimeManagement.Friday'),
+            translate('TimeManagement.Saturday'),
+            translate('TimeManagement.Sunday')
+        ];
+    
         return (
             <View style={styles.userContainer}>
-                <Text style={styles.userName}>{translate('TimeManagement.User')}: {item.user}</Text>
+                <Text style={styles.userName}>
+                    {translate('TimeManagement.User')}: {item.user}
+                </Text>
                 {days.map((day, index) => {
                     // Calculate the specific date for each day of the week
                     const dayDate = currentWeekStart.clone().add(index, 'days').format('YYYY-MM-DD');
-
+    
                     return (
                         <View key={index} style={styles.dayContainer}>
                             <Text style={styles.dayName}>{day}:</Text>
                             {item[index] && item[index].length > 0 ? (
-                                item[index].map((schedule, idx) => (
-                                    <View key={idx} style={styles.scheduleRow}>
-                                        <View style={styles.scheduleDataContainer}>
-                                            <View>
-                                                <Text style={styles.scheduleData}>
-                                                    {formatTime(schedule.schedule.split('-')[0])} - {formatTime(schedule.schedule.split('-')[1])}
-                                                </Text>
-                                                <Text style={styles.locationData}>{schedule.location}</Text>
-                                            </View>
-                                            {userData && userData.id === schedule.user_id && (
+                                item[index].map((schedule, idx) => {
+                                    // Determine the background color
+                                    const backgroundColor =
+                                        userData && userData.id === schedule.user_id && schedule.status === 2
+                                            ? schedule.type === 1
+                                                ? "red"
+                                                : schedule.type === 2
+                                                ? "yellow"
+                                                : "#dddddd"
+                                            : "#dddddd";
+    
+                                    return (
+                                        <View key={idx} style={styles.scheduleRow}>
+                                            <View style={[styles.scheduleDataContainer, { backgroundColor }]}>
                                                 <View>
-                                                    {schedule.status === 1 ? (
-                                                        <Text style={styles.approvareButton}>In attesa di</Text>
-                                                    ) : schedule.status === 2 ? (
-                                                        <Text style={styles.approvareButton}>Approvata</Text>
-                                                    ) : schedule.status === 3 ? (
-                                                        <Text style={styles.approvareButton}>Disapprovata</Text>
-                                                    ) : (
-                                                        <TouchableOpacity
-                                                            style={styles.leaveButton}
-                                                            onPress={() => openLeaveModal(schedule.shift_id)}
-                                                        >
-                                                            <Text style={styles.leaveButtonText}>Assenza</Text>
-                                                        </TouchableOpacity>
-                                                    )}
+                                                    <Text style={styles.scheduleData}>
+                                                        {formatTime(schedule.schedule.split('-')[0])} - {formatTime(schedule.schedule.split('-')[1])}
+                                                    </Text>
+                                                    <Text style={styles.locationData}>{schedule.location}</Text>
                                                 </View>
-                                            )}
+                                                {userData && userData.id === schedule.user_id && (
+                                                    <View>
+                                                        {schedule.status === 1 ? (
+                                                            <Text style={styles.approvareButton}>In attesa di</Text>
+                                                        ) : schedule.status === 2 ? (
+                                                            <Text style={styles.approvareButton}>Approvata</Text>
+                                                        ) : schedule.status === 3 ? (
+                                                            <Text style={styles.approvareButton}>Disapprovata</Text>
+                                                        ) : (
+                                                            <TouchableOpacity
+                                                                style={styles.leaveButton}
+                                                                onPress={() => openLeaveModal(schedule.shift_id)}
+                                                            >
+                                                                <Text style={styles.leaveButtonText}>Assenza</Text>
+                                                            </TouchableOpacity>
+                                                        )}
+                                                    </View>
+                                                )}
+                                            </View>
                                         </View>
-                                    </View>
-                                ))
+                                    );
+                                })
                             ) : (
                                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                                     <Text style={styles.noSchedule}>{translate('TimeManagement.No_Schedule')}</Text>
@@ -305,7 +320,7 @@ const TimeManagement = (props) => {
             </View>
         );
     };
-
+    
     return (
         <SafeAreaView style={styles.container}>
             <DrawerComponent props={props} title={translate('TimeManagement.Weekly_Schedule')} color={Prime_Color} onRefresh={() => updateWeekRange(currentWeekStart)} />

@@ -193,16 +193,18 @@ const api = {
     },
    
   }),
-  Leave: (token,params) => instance.post(`/leave`, params,{
+  Leave: (token,formData) => instance.post(`/leave`, formData,{
     headers: {
       Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
     },
   
   }),
 
-  Leave_without_schedule: (token,params) => instance.post(`/no-schedule-leave`, params,{
+  Leave_without_schedule: (token,formData) => instance.post(`/no-schedule-leave`, formData,{
     headers: {
       Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
     },
   
   }),

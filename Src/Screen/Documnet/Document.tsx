@@ -27,6 +27,7 @@ const Document = (props) => {
       const LocationId = parseInt(LocationIdstr, 10);
       if (!isNaN(LocationId)) {
         try {
+          console.log(LocationId)
           const response = await api.Document(token, LocationId);
           setManualDocuments(response.data.data.manual);
           setPersonalDocuments(response.data.data.personal);
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
 
     borderWidth: 1,
     borderColor: 'gray',
-    borderLeftWidth: 0, // To attach the button with the TextInput
+    borderLeftWidth: 0, 
   },
 
   tabContainer: {

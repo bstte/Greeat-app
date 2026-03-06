@@ -73,8 +73,8 @@ const Task = (props) => {
             try {
                 const { width, height, path } = image;
     
-                const maxWidth = 1200; 
-                const maxHeight = 1200;
+                const maxWidth = 2000; 
+                const maxHeight = 2000;
     
                 let targetWidth = width;
                 let targetHeight = height;
@@ -93,10 +93,10 @@ const Task = (props) => {
                     path,
                     targetWidth,
                     targetHeight,
-                    'JPEG',
-                    90
+                    'PNG',
+                    100
                 );
-                const imageType = resizedImage.mime || 'image/jpeg'; // Default to 'image/jpeg' if mime type
+                const imageType = resizedImage.mime || 'image/png'; 
 
                 setSelectedImages(prev => ({
                     ...prev,

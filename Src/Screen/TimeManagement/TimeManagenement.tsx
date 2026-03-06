@@ -15,6 +15,7 @@ import CustomImageModal from '../../Component/CustomImageModal';
 import CheckBox from 'react-native-check-box';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ImageResizer from 'react-native-image-resizer';
+import LoadingButton from '../../Component/LoadingButton';
 
 const TimeManagement = (props) => {
     const [weekRange, setWeekRange] = useState('');
@@ -29,7 +30,8 @@ const TimeManagement = (props) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [shift_id, setshift_id] = useState('');
     const [user_id, seuser_id] = useState('');
-    const [selectedOption, setSelectedOption] = useState(null); 
+    const [selectedOption, setSelectedOption] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const [note, setNote] = useState('');
 
@@ -55,7 +57,7 @@ const TimeManagement = (props) => {
                 const response = await api.schedule(token, weekStartDate.format('YYYY-MM-DD'));
                 setIsLoading(false);
                 setScheduleData(response.data.data);
-             
+
             } catch (error) {
                 console.error(error);
             }
@@ -74,11 +76,13 @@ const TimeManagement = (props) => {
 
     const openLeaveModal_without_schedule = (user_id, selectedDate) => {
         seuser_id(user_id);
-        setDate(selectedDate); 
+        setDate(selectedDate);
         setModalVisible_without_schedule(true);
     };
 
     const handleSaveNote_without_schedule = async () => {
+        if (isSaving) return; // 🚫 double hit protection
+
         if (!note) {
 
             ErrorMessage({
@@ -95,10 +99,10 @@ const TimeManagement = (props) => {
             return;
         }
 
-          const formData = new FormData();
+        const formData = new FormData();
         formData.append('user_id', user_id);
         formData.append('note', note);
-        formData.append('type', selectedOption==='Leave'?1:2);
+        formData.append('type', selectedOption === 'Leave' ? 1 : 2);
         if (selectedImage) {
             formData.append('file', {
                 uri: selectedImage.uri,
@@ -111,8 +115,10 @@ const TimeManagement = (props) => {
         const token = await fetchToken();
         if (token) {
             try {
+                setIsSaving(true); // 🔒 button lock
+
                 const response = await api.Leave_without_schedule(token, formData)
-                setNote(''),setSelectedOption(null),setSelectedImage(null)
+                setNote(''), setSelectedOption(null), setSelectedImage(null)
                 updateWeekRange(currentWeekStart);
                 setModalVisible_without_schedule(false);
                 Alert.alert('Success', 'Richiesta aggiunta con successo');
@@ -123,11 +129,16 @@ const TimeManagement = (props) => {
                 console.error("leave no schedule error", error)
                 Alert.alert('Error', 'Something went wrong');
             }
+            finally {
+                setIsSaving(false); // 🔓 button unlock
+            }
 
         }
 
     }
     const handleSaveNote = async () => {
+        if (isSaving) return; // 🚫 double hit protection
+
         if (!note) {
 
             ErrorMessage({
@@ -147,7 +158,7 @@ const TimeManagement = (props) => {
         const formData = new FormData();
         formData.append('shift_id', shift_id);
         formData.append('note', note);
-        formData.append('type', selectedOption==='Leave'?1:2);
+        formData.append('type', selectedOption === 'Leave' ? 1 : 2);
         if (selectedImage) {
             formData.append('file', {
                 uri: selectedImage.uri,
@@ -160,8 +171,10 @@ const TimeManagement = (props) => {
         const token = await fetchToken();
         if (token) {
             try {
+                setIsSaving(true); // 🔒 button lock
+
                 const response = await api.Leave(token, formData)
-                setNote(''),setSelectedOption(null),setSelectedImage(null)
+                setNote(''), setSelectedOption(null), setSelectedImage(null)
                 setModalVisible(false);
                 updateWeekRange(currentWeekStart);
                 Alert.alert('Success', 'Richiesta aggiunta con successo');
@@ -172,6 +185,8 @@ const TimeManagement = (props) => {
 
                 console.error("leave error", error)
                 Alert.alert('Error', 'Something went wrong');
+            } finally {
+                setIsSaving(false); // 🔓 button unlock
             }
 
         }
@@ -182,6 +197,8 @@ const TimeManagement = (props) => {
 
     const handleImageModalVisible = () => {
         setImageModalVisible(!isImageModalVisible);
+        setModalVisible(false)
+        setModalVisible_without_schedule(false)
     };
 
 
@@ -194,8 +211,8 @@ const TimeManagement = (props) => {
             const originalHeight = item.height;
 
             // Set a maximum width and height for resizing
-            const maxWidth = 1100; // Maximum desired width
-            const maxHeight = 1100; // Maximum desired height
+            const maxWidth = 2000; // Maximum desired width
+            const maxHeight = 2000; // Maximum desired height
 
             // Calculate the target dimensions while maintaining the aspect ratio
             let targetWidth = originalWidth;
@@ -211,28 +228,31 @@ const TimeManagement = (props) => {
                 }
             }
 
-
-
-            // Resize the image
             resizedImage = await ImageResizer.createResizedImage(
                 item.path,
                 targetWidth,
                 targetHeight,
-                'JPEG',
-                90 // Compression quality (90% recommended for good quality)
+                'PNG',
+                100
             );
 
             console.log("Resized image:", resizedImage);
         } catch (error) {
             console.error('Image resizing error:', error);
-            return; // Exit if resizing fails
+            return;
         }
 
-        const imageType = resizedImage.mime || 'image/jpeg';
+        const imageType = resizedImage.mime || 'image/png';
 
         setSelectedImage({ ...resizedImage, type: imageType });
 
+
         handleImageModalVisible();
+        if (shift_id) {
+            setModalVisible(true)
+        } else {
+            setModalVisible_without_schedule(true)
+        }
     }
 
     const renderSchedule = ({ item }) => {
@@ -245,7 +265,7 @@ const TimeManagement = (props) => {
             translate('TimeManagement.Saturday'),
             translate('TimeManagement.Sunday')
         ];
-    
+
         return (
             <View style={styles.userContainer}>
                 <Text style={styles.userName}>
@@ -254,7 +274,7 @@ const TimeManagement = (props) => {
                 {days.map((day, index) => {
                     // Calculate the specific date for each day of the week
                     const dayDate = currentWeekStart.clone().add(index, 'days').format('YYYY-MM-DD');
-    
+
                     return (
                         <View key={index} style={styles.dayContainer}>
                             <Text style={styles.dayName}>{day}:</Text>
@@ -266,10 +286,10 @@ const TimeManagement = (props) => {
                                             ? schedule.type === 1
                                                 ? "red"
                                                 : schedule.type === 2
-                                                ? "yellow"
-                                                : "#dddddd"
+                                                    ? "yellow"
+                                                    : "#dddddd"
                                             : "#dddddd";
-    
+
                                     return (
                                         <View key={idx} style={styles.scheduleRow}>
                                             <View style={[styles.scheduleDataContainer, { backgroundColor }]}>
@@ -320,7 +340,7 @@ const TimeManagement = (props) => {
             </View>
         );
     };
-    
+
     return (
         <SafeAreaView style={styles.container}>
             <DrawerComponent props={props} title={translate('TimeManagement.Weekly_Schedule')} color={Prime_Color} onRefresh={() => updateWeekRange(currentWeekStart)} />
@@ -359,7 +379,7 @@ const TimeManagement = (props) => {
 
                         <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 13 }}>
                             <Text style={styles.modalTitle}>Lascia una nota</Text>
-                            <TouchableOpacity onPress={() => {setModalVisible(false),setNote(''),setSelectedOption(null),setSelectedImage(null)}}>
+                            <TouchableOpacity onPress={() => { setModalVisible(false), setNote(''), setSelectedOption(null), setSelectedImage(null) }}>
                                 <Text style={{ color: Prime_Color, fontSize: 19, fontWeight: "bold" }}>X</Text>
 
                             </TouchableOpacity>
@@ -413,7 +433,13 @@ const TimeManagement = (props) => {
                             </View>
                         )}
 
-                        <Button title="Salva" onPress={handleSaveNote} />
+                        <LoadingButton
+                            title="Salva"
+                            loading={isSaving}
+                            loadingText="Risparmio..."
+                            onPress={handleSaveNote}
+                        />
+
                     </View>
                 </View>
             </Modal>
@@ -429,7 +455,7 @@ const TimeManagement = (props) => {
                     <View style={styles.modalContent}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 13 }}>
                             <Text style={styles.modalTitle}>Lascia una nota</Text>
-                            <TouchableOpacity onPress={() => {setModalVisible_without_schedule(false),setNote(''),setSelectedOption(null),setSelectedImage(null)}}>
+                            <TouchableOpacity onPress={() => { setModalVisible_without_schedule(false), setNote(''), setSelectedOption(null), setSelectedImage(null) }}>
                                 <Text style={{ color: Prime_Color, fontSize: 19, fontWeight: "bold" }}>X</Text>
 
                             </TouchableOpacity>
@@ -480,17 +506,29 @@ const TimeManagement = (props) => {
                             </View>
                         )}
 
-                        <Button title="Salva" onPress={handleSaveNote_without_schedule} />
+
+                        <LoadingButton
+                            title="Salva"
+                            loading={isSaving}
+                            loadingText="Risparmio..."
+                            onPress={handleSaveNote_without_schedule}
+                        />
+
+
+                        {/* <Button title="Salva" onPress={handleSaveNote_without_schedule} /> */}
                     </View>
                 </View>
             </Modal>
-            <CustomImageModal
-                togglevisible={isImageModalVisible}
-                onclose={handleImageModalVisible}
-                multipleImage={false}
-                Galleryvalidation={true}
-                handelImage={(item) => handelImage(item)}
-            />
+            <View style={{ flex: 1 }}>
+                <CustomImageModal
+                    togglevisible={isImageModalVisible}
+                    onclose={handleImageModalVisible}
+                    multipleImage={false}
+                    Galleryvalidation={true}
+                    handelImage={(item) => handelImage(item)}
+                />
+            </View>
+
         </SafeAreaView>
     );
 };

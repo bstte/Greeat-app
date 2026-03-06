@@ -1,12 +1,12 @@
 import axios from "axios";
 // live server url
-const BASE_API_URL = 'https://gestione.greeat.it/api/';
-export const Image_Base_Url = 'https://gestione.greeat.it/public/images/';
+// const BASE_API_URL = 'https://gestione.greeat.it/api/';
+// export const Image_Base_Url = 'https://gestione.greeat.it/public/images/';
 
 
 // devloper server url
-// const BASE_API_URL = 'https://teamwebdevelopers.com/greeat/api/';
-// export const Image_Base_Url = 'https://teamwebdevelopers.com/greeat/public/images/';
+const BASE_API_URL = 'https://teamwebdevelopers.com/greeat/api/';
+export const Image_Base_Url = 'https://teamwebdevelopers.com/greeat/public/images/';
 
 const instance = axios.create({
   baseURL: BASE_API_URL,

@@ -34,9 +34,7 @@ const CustomImageModal: React.FC<ImageModal> = ({ togglevisible, onclose, handel
                 console.log('Camera permission granted');
 
                 const response = await ImagePicker.openCamera({
-                    width: 250,
-                    height: 250,
-                    cropping: true,
+                    cropping: false,
                 });
 
                 // console.log('Image picker response:', response);
@@ -64,9 +62,8 @@ const CustomImageModal: React.FC<ImageModal> = ({ togglevisible, onclose, handel
 
             const response = await ImagePicker.openPicker({
                 multiple: multipleImage,
-                width: 250,
-                height: 250,
-                cropping: true,
+
+                cropping: false,
             });
 
             handelImage(response);

@@ -145,8 +145,8 @@ const AddCloser = (props) => {
         item.path,
         targetWidth,
         targetHeight,
-        'JPEG',
-        90 // Compression quality (90% recommended for good quality)
+        'PNG',
+        100 // Compression quality (90% recommended for good quality)
       );
 
       // console.log("Resized image:", resizedImage);
@@ -157,7 +157,7 @@ const AddCloser = (props) => {
 
     console.log("Resize image", resizedImage);
 
-    const imageType = resizedImage.mime || 'image/jpeg'; // Default to 'image/jpeg' if mime type is not available
+    const imageType = resizedImage.mime || 'image/png'; // Default to 'image/jpeg' if mime type is not available
 
     switch (selectedImageType) {
       case 'dark':

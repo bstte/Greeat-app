@@ -29,6 +29,7 @@ const AddInvoice = (props) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedLocation, setSelectedLocation] = useState(null);
     const [selectedDocumentType, setSelectedDocumentType] = useState(null);
+    const [selectedtipodipagmento, setSelectedtipodipagmento] = useState(null);
     const [selectedSupplier, setSelectedSupplier] = useState(null);
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [note, setNote] = useState('');
@@ -73,6 +74,7 @@ const AddInvoice = (props) => {
         if (token) {
             try {
                 const response = await api.Addinvoicedata(token);
+                console.log("setinvoiceadddata", response.data)
                 setinvoiceadddata(response.data.data || { supplier: [], dataType: [] });
             } catch (error) {
                 console.log("get invoice data error:", error);
@@ -80,9 +82,10 @@ const AddInvoice = (props) => {
         }
     };
 
-    const status = [
-        { label: "Active", value: "1" },
-        { label: "Inactive", value: "0" }
+    const TipodiPagamento = [
+        { label: "Sospeso", value: "1" },
+        { label: "Carta", value: "2" },
+        { label: "Contanti", value: "3" }
     ];
 
     const handleonpresstartdata = () => {
@@ -110,6 +113,9 @@ const AddInvoice = (props) => {
         setSelectedDocumentType(item.value);
     }
 
+    function handletipodopagmento(item) {
+        setSelectedtipodipagmento(item.value);
+    }
     function handlesupplier(item) {
         setSelectedSupplier(item.value);
     }
@@ -145,7 +151,7 @@ const AddInvoice = (props) => {
                 }
             }
 
-    
+
 
             // Resize the image
             resizedImage = await ImageResizer.createResizedImage(
@@ -211,14 +217,23 @@ const AddInvoice = (props) => {
         }
 
         if (!selectedDocumentType) {
-          
+
             ErrorMessage({
 
                 message: translate('AddInvoice.Document_Type_required')
             });
             return;
         }
-    
+
+        if (!selectedtipodipagmento) {
+
+            ErrorMessage({
+
+                message:"Tipo di Pagamento obbligatorio"
+            });
+            return;
+        }
+        
         if (!selectedImage) {
             ErrorMessage({
                 message: translate('AddInvoice.Photo_required')
@@ -228,6 +243,7 @@ const AddInvoice = (props) => {
         const formData = new FormData();
         formData.append('location_id', selectedLocation);
         formData.append('document_type_id', selectedDocumentType);
+        formData.append('payment_type', selectedtipodipagmento);
         formData.append('supplier_id', selectedSupplier);
         formData.append('amount', Amount);
         formData.append('date', RepairDate);
@@ -324,23 +340,11 @@ const AddInvoice = (props) => {
                     <CustomDropdown
                         data={invoiceadddata.dataType.map((dataType) => ({ label: dataType.document_type, value: dataType.id }))}
                         placeholder={translate('AddInvoice.Select_Document_Type')}
-                        title={translate('AddInvoice.Document_Type')}
+                        title={'Tipo di Documento'}
                         onSelect={handleDoctype}
                         required={true}
                     />
                 )}
-
-                {invoiceadddata.supplier && (
-                    <CustomDropdown
-                        data={invoiceadddata.supplier.map((supplier) => ({ label: supplier.name, value: supplier.id }))}
-                        placeholder={translate('AddInvoice.Select_Supplier')}
-                        title={translate('AddInvoice.Supplier')}
-                        onSelect={handlesupplier}
-                        required={true}
-                    />
-                )}
-
-               
 
                 <Text style={styles.textinputlabel}>{translate('AddInvoice.Attach_Photo_Documento')} <Text style={{ color: "red" }}>*</Text></Text>
                 <TouchableOpacity onPress={handleImageModalVisible} style={styles.ImageContainer}>
@@ -355,6 +359,27 @@ const AddInvoice = (props) => {
                         />
                         <Text>{selectedImage.mime}</Text>
                     </View>
+                )}
+                {invoiceadddata.supplier && (
+                    <CustomDropdown
+                        data={invoiceadddata.supplier.map((supplier) => ({ label: supplier.name, value: supplier.id }))}
+                        placeholder={translate('AddInvoice.Select_Supplier')}
+                        title={translate('AddInvoice.Supplier')}
+                        onSelect={handlesupplier}
+                        required={true}
+                    />
+                )}
+
+
+
+                {invoiceadddata.dataType && (
+                    <CustomDropdown
+                        data={TipodiPagamento.map((TipodiPagamento) => ({ label: TipodiPagamento.label, value: TipodiPagamento.value }))}
+                        placeholder={'Select Tipo di Pagamento'}
+                        title={'Tipo di Pagamento'}
+                        onSelect={handletipodopagmento}
+                        required={true}
+                    />
                 )}
 
                 <CustomTextInput

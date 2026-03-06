@@ -159,12 +159,17 @@ const ListInvoice = (props) => {
     const renderItem = ({ item, index }) => (
         <View style={styles.itemContainer}>
             {/* <Textlabel title='Serial Number:' value={index + 1} /> */}
-            <Textlabel title={translate('Invoice.Document_Number')} value={item.title} />
             <Textlabel title={translate('Invoice.Location')} value={item.location_id || ''} />
+            <Textlabel title={translate('Invoice.Date')} value={<DateFormatter date={item.date} time={false} />} />
+            <Textlabel title={translate('AddInvoice.Supplier')} value={item.supplier_id} />
+            <Textlabel title={'Tipo di Pagamento'} value={item.payment_type} />
+            <Textlabel title={translate('Invoice.Document_Number')} value={item.title} />
+          
+           
             <Textlabel title={translate('Invoice.Amount')}  value={item.amount} />
             <Textlabel title={'Note: '}  value={item.note} />
 
-            <Textlabel title={translate('Invoice.Date')} value={<DateFormatter date={item.date} time={false} />} />
+           
 
 
 {/* 
